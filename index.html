@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blue Sky Inspections — Invoice</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: #e8edf2;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  .app-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .print-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .print-btn {
+    flex: 1;
+    padding: 14px;
+    background: #2c4a6e;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .print-btn:hover { background: #1e3450; }
+
+  .invoice-doc {
+    background: #fff;
+    border-radius: 4px;
+    padding: 48px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .inv-company { margin-bottom: 36px; }
+
+  .inv-company-name {
+    font-size: 22px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    color: #2c4a6e;
+    margin-bottom: 12px;
+  }
+
+  .inv-company-details {
+    font-size: 13px;
+    font-family: 'Arial', sans-serif;
+    color: #4a5a6a;
+    line-height: 1.7;
+  }
+
+  .inv-company-details strong { color: #1a2a3a; }
+
+  .inv-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #2c4a6e;
+  }
+
+  .inv-title {
+    font-size: 42px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 900;
+    color: #1a2a3a;
+    letter-spacing: -0.02em;
+  }
+
+  .inv-date {
+    font-size: 14px;
+    font-family: 'Arial', sans-serif;
+    color: #2c4a6e;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+
+  .inv-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 36px;
+  }
+
+  .inv-meta-label {
+    font-size: 10px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7a8fa6;
+    margin-bottom: 4px;
+  }
+
+  .inv-meta-value {
+    font-size: 14px;
+    font-family: 'Arial', sans-serif;
+    color: #1a2a3a;
+    font-weight: 600;
+  }
+
+  .inv-meta-sub {
+    font-size: 13px;
+    color: #4a5a6a;
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  .inv-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+  }
+
+  .inv-table thead tr { background: #2c4a6e; }
+
+  .inv-table thead th {
+    padding: 10px 14px;
+    font-size: 11px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    text-align: left;
+  }
+
+  .inv-table thead th:last-child { text-align: right; }
+
+  .inv-table tbody tr { background: #f4f7fb; }
+
+  .inv-table tbody td {
+    padding: 14px;
+    font-size: 14px;
+    font-family: 'Arial', sans-serif;
+    color: #1a2a3a;
+  }
+
+  .inv-table tbody td:last-child {
+    text-align: right;
+    font-weight: 700;
+  }
+
+  .inv-fee-note {
+    font-size: 11px;
+    font-family: 'Arial', sans-serif;
+    color: #7a8fa6;
+    padding: 10px 14px;
+    background: #f9fbfd;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    margin-bottom: 20px;
+  }
+
+  .inv-totals {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 32px;
+  }
+
+  .inv-totals-box { width: 220px; }
+
+  .inv-total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+    font-family: 'Arial', sans-serif;
+    color: #4a5a6a;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .inv-total-final {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0 0;
+    font-size: 22px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 900;
+    color: #2c4a6e;
+  }
+
+  .inv-notes {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .inv-notes-label {
+    font-size: 11px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7a8fa6;
+    margin-bottom: 4px;
+  }
+
+  .inv-notes-value {
+    font-size: 13px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    color: #2c4a6e;
+  }
+
+  .error-msg {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    color: #856404;
+    margin-bottom: 16px;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .print-bar { display: none !important; }
+    .invoice-doc { box-shadow: none; padding: 32px; }
+  }
+
+  @media (max-width: 500px) {
+    .invoice-doc { padding: 24px; }
+    .inv-meta { grid-template-columns: 1fr 1fr; }
+    .inv-title { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <div id="error-area"></div>
+
+  <div class="print-bar">
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+  </div>
+
+  <div class="invoice-doc">
+    <div class="inv-company">
+      <div class="inv-company-name">Blue Sky Inspections</div>
+      <div class="inv-company-details">
+        4110 Blueberry Lane<br>
+        Eagan, MN 55123<br>
+        612-802-4561<br>
+        nicktheinspector@gmail.com<br>
+        <strong>Venmo: @Nick-Koenig-19</strong>
+      </div>
+    </div>
+
+    <div class="inv-title-row">
+      <div>
+        <div class="inv-title">Invoice</div>
+        <div class="inv-date" id="out-date"></div>
+      </div>
+    </div>
+
+    <div class="inv-meta">
+      <div>
+        <div class="inv-meta-label">Invoice For</div>
+        <div class="inv-meta-value">TISH Inspection</div>
+        <div class="inv-meta-sub" id="out-owner"></div>
+      </div>
+      <div>
+        <div class="inv-meta-label">Portable To</div>
+        <div class="inv-meta-value">Blue Sky Inspections</div>
+      </div>
+      <div>
+        <div class="inv-meta-label">Invoice #</div>
+        <div class="inv-meta-value" id="out-invoice-num"></div>
+        <div class="inv-meta-label" style="margin-top:10px;">Due Date</div>
+        <div class="inv-meta-value">Due upon receipt</div>
+      </div>
+    </div>
+
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th style="text-align:right;">Total Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="out-description"></td>
+          <td id="out-price"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="inv-fee-note">
+      A 3% service fee will be added to the total when using credit card, PayPal, or any other payment method that incurs a service fee.
+    </div>
+
+    <div class="inv-totals">
+      <div class="inv-totals-box">
+        <div class="inv-total-row">
+          <span>Subtotal</span>
+          <span id="out-subtotal"></span>
+        </div>
+        <div class="inv-total-final">
+          <span id="out-total"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="inv-notes">
+      <div>
+        <div class="inv-notes-label">Notes</div>
+        <div class="inv-notes-value">Venmo address above</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function getParams() {
+    const params = {};
+    const search = window.location.search.substring(1);
+    search.split('&').forEach(pair => {
+      const [key, val] = pair.split('=');
+      if (key) params[decodeURIComponent(key)] = decodeURIComponent((val || '').replace(/\+/g, ' '));
+    });
+    return params;
+  }
+
+  function formatCurrency(val) {
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    return '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  const p = getParams();
+
+  if (!p.owner && !p.address) {
+    document.getElementById('error-area').innerHTML =
+      '<div class="error-msg">⚠️ No invoice data found. Please tap the link from your Google Sheet.</div>';
+  }
+
+  const houseType = p.type || '';
+  const address   = p.address || '';
+  const city      = p.city || '';
+  const description = houseType
+    ? `TISH Inspection @ ${houseType} - ${address} ${city}`
+    : `TISH Inspection @ ${address} ${city}`;
+
+  document.getElementById('out-date').textContent        = p.date || '';
+  document.getElementById('out-owner').textContent       = p.owner || '';
+  document.getElementById('out-invoice-num').textContent = p.inv || '';
+  document.getElementById('out-description').textContent = description;
+  document.getElementById('out-price').textContent       = formatCurrency(p.price);
+  document.getElementById('out-subtotal').textContent    = formatCurrency(p.price);
+  document.getElementById('out-total').textContent       = formatCurrency(p.price);
+</script>
+</body>
+</html>
