@@ -42,12 +42,83 @@
 
   .print-btn:hover { background: #1e3450; }
 
+  .paid-btn {
+    flex: 1;
+    padding: 14px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .paid-btn:hover { background: #1b5e20; }
+
+  .unpaid-btn {
+    flex: 1;
+    padding: 14px;
+    background: transparent;
+    color: #2c4a6e;
+    border: 2px solid #2c4a6e;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
   .invoice-doc {
     background: #fff;
     border-radius: 4px;
     padding: 48px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    position: relative;
   }
+
+  /* PAID STAMP */
+  .paid-stamp {
+    display: none;
+    position: absolute;
+    top: 80px;
+    right: 60px;
+    border: 5px solid #2e7d32;
+    border-radius: 8px;
+    padding: 10px 20px;
+    transform: rotate(-15deg);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  .paid-stamp-text {
+    font-size: 36px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 900;
+    color: #2e7d32;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .paid-stamp-date {
+    font-size: 12px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    color: #2e7d32;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  .paid-stamp.visible { display: block; }
+
+  /* Receipt mode — changes header color */
+  .receipt-mode .inv-title { color: #2e7d32; }
+  .receipt-mode .inv-title-row { border-bottom-color: #2e7d32; }
 
   .inv-company { margin-bottom: 36px; }
 
@@ -238,12 +309,15 @@
     body { background: white; padding: 0; }
     .print-bar { display: none !important; }
     .invoice-doc { box-shadow: none; padding: 32px; }
+    .paid-stamp.visible { display: block !important; }
   }
 
   @media (max-width: 500px) {
     .invoice-doc { padding: 24px; }
     .inv-meta { grid-template-columns: 1fr 1fr; }
     .inv-title { font-size: 30px; }
+    .paid-stamp { top: 60px; right: 20px; }
+    .paid-stamp-text { font-size: 26px; }
   }
 </style>
 </head>
@@ -254,9 +328,17 @@
 
   <div class="print-bar">
     <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+    <button class="paid-btn" id="paid-btn" onclick="markPaid()">✓ Mark as Paid</button>
   </div>
 
-  <div class="invoice-doc">
+  <div class="invoice-doc" id="invoice-doc">
+
+    <!-- PAID STAMP -->
+    <div class="paid-stamp" id="paid-stamp">
+      <div class="paid-stamp-text">Paid in Full</div>
+      <div class="paid-stamp-date" id="paid-date"></div>
+    </div>
+
     <div class="inv-company">
       <div class="inv-company-name">Blue Sky Inspections</div>
       <div class="inv-company-details">
@@ -270,7 +352,7 @@
 
     <div class="inv-title-row">
       <div>
-        <div class="inv-title">Invoice</div>
+        <div class="inv-title" id="doc-title">Invoice</div>
         <div class="inv-date" id="out-date"></div>
       </div>
     </div>
@@ -289,7 +371,7 @@
         <div class="inv-meta-label">Invoice #</div>
         <div class="inv-meta-value" id="out-invoice-num"></div>
         <div class="inv-meta-label" style="margin-top:10px;">Due Date</div>
-        <div class="inv-meta-value">Due upon receipt</div>
+        <div class="inv-meta-value" id="out-due">Due upon receipt</div>
       </div>
     </div>
 
@@ -330,8 +412,8 @@
         <div class="inv-notes-value">Venmo address above</div>
       </div>
     </div>
-  </div>
 
+  </div>
 </div>
 
 <script>
@@ -351,6 +433,11 @@
     return '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
+  function getToday() {
+    const d = new Date();
+    return (d.getMonth()+1) + '/' + d.getDate() + '/' + String(d.getFullYear()).slice(2);
+  }
+
   const p = getParams();
 
   if (!p.owner && !p.address) {
@@ -359,8 +446,8 @@
   }
 
   const address     = p.address || '';
-const city        = p.city || '';
-const description = `TISH Inspection @ ${address} ${city}`;
+  const city        = p.city || '';
+  const description = `TISH Inspection @ ${address} ${city}`;
 
   document.getElementById('out-date').textContent        = p.date || '';
   document.getElementById('out-owner').textContent       = p.owner || '';
@@ -369,6 +456,43 @@ const description = `TISH Inspection @ ${address} ${city}`;
   document.getElementById('out-price').textContent       = formatCurrency(p.price);
   document.getElementById('out-subtotal').textContent    = formatCurrency(p.price);
   document.getElementById('out-total').textContent       = formatCurrency(p.price);
+
+  function markPaid() {
+    const stamp    = document.getElementById('paid-stamp');
+    const paidDate = document.getElementById('paid-date');
+    const btn      = document.getElementById('paid-btn');
+    const doc      = document.getElementById('invoice-doc');
+    const title    = document.getElementById('doc-title');
+    const due      = document.getElementById('out-due');
+
+    stamp.classList.add('visible');
+    paidDate.textContent = getToday();
+    doc.classList.add('receipt-mode');
+    title.textContent = 'Receipt';
+    due.textContent = 'Paid in Full';
+
+    // Swap button to "Undo"
+    btn.textContent = '✕ Undo';
+    btn.style.background = '#888';
+    btn.onclick = unmarkPaid;
+  }
+
+  function unmarkPaid() {
+    const stamp = document.getElementById('paid-stamp');
+    const btn   = document.getElementById('paid-btn');
+    const doc   = document.getElementById('invoice-doc');
+    const title = document.getElementById('doc-title');
+    const due   = document.getElementById('out-due');
+
+    stamp.classList.remove('visible');
+    doc.classList.remove('receipt-mode');
+    title.textContent = 'Invoice';
+    due.textContent = 'Due upon receipt';
+
+    btn.textContent = '✓ Mark as Paid';
+    btn.style.background = '#2e7d32';
+    btn.onclick = markPaid;
+  }
 </script>
 </body>
 </html>
