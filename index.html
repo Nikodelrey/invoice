@@ -358,12 +358,9 @@
       '<div class="error-msg">⚠️ No invoice data found. Please tap the link from your Google Sheet.</div>';
   }
 
-  const houseType = p.type || '';
-  const address   = p.address || '';
-  const city      = p.city || '';
-  const description = houseType
-    ? `TISH Inspection @ ${houseType} - ${address} ${city}`
-    : `TISH Inspection @ ${address} ${city}`;
+  const address     = p.address || '';
+const city        = p.city || '';
+const description = `TISH Inspection @ ${address} ${city}`;
 
   document.getElementById('out-date').textContent        = p.date || '';
   document.getElementById('out-owner').textContent       = p.owner || '';
