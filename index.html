@@ -306,10 +306,31 @@
   }
 
   @media print {
-    body { background: white; padding: 0; }
+    @page {
+      size: letter;
+      margin: 0.5in;
+    }
+    html, body {
+      height: 100%;
+      background: white;
+      padding: 0;
+      margin: 0;
+    }
     .print-bar { display: none !important; }
-    .invoice-doc { box-shadow: none; padding: 32px; }
+    .app-wrapper { max-width: 100%; }
+    .invoice-doc {
+      box-shadow: none;
+      padding: 24px;
+      page-break-after: avoid;
+      page-break-inside: avoid;
+    }
     .paid-stamp.visible { display: block !important; }
+    .inv-company { margin-bottom: 20px; }
+    .inv-title-row { margin-bottom: 20px; padding-bottom: 16px; }
+    .inv-meta { margin-bottom: 20px; }
+    .inv-totals { margin-bottom: 20px; }
+    .inv-title { font-size: 32px; }
+    .inv-company-name { font-size: 18px; }
   }
 
   @media (max-width: 500px) {
